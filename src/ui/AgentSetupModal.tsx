@@ -46,7 +46,7 @@ export function AgentSetupModal({ open, onClose }: { open: boolean; onClose: () 
           <Bot size={16} className="text-orange-500" /> エージェント連携
         </h2>
         <p className="mt-1 text-xs leading-relaxed text-slate-500">
-          下のスタータープロンプトを Cursor や Codex に一度貼り付けると、スクリーンショットを
+          下のスタータープロンプトを AIエディター等に一度貼り付けると、スクリーンショットを
           Markupで開き、注釈をもとに修正する流れをエージェントと共有できます。コピー文には
           内蔵ブラウザ優先の指示も含まれます。
         </p>
