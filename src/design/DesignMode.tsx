@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDesignStore } from "../state/designStore";
+import { useAppStore } from "../state/appStore";
 import { CanvasView } from "./CanvasView";
 import { LayersPanel } from "./LayersPanel";
 import { InspectorPanel } from "./InspectorPanel";
@@ -7,6 +8,7 @@ import { AIPanel } from "./AIPanel";
 import { CodePanel } from "./CodePanel";
 import {
   Code2,
+  MessageSquareDashed,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
@@ -21,6 +23,65 @@ type RightTab = "design" | "ai" | "code";
 
 // In narrow viewports (e.g. an editor side-panel browser) start with panels collapsed.
 const NARROW = () => window.innerWidth < 1000;
+
+function EmptyBoardGuide({ onStartAI }: { onStartAI: () => void }) {
+  const setMode = useAppStore((state) => state.setMode);
+
+  const steps = [
+    ["01", <Sparkles key="i" size={15} />, "AIで画面を生成", "つくりたい画面を文章で指示"],
+    ["02", <SlidersHorizontal key="i" size={15} />, "そのまま編集", "選択・ドラッグ・インスペクタ・AI修正"],
+    ["03", <Code2 key="i" size={15} />, "コードに書き出す", "React / HTML とライブプレビュー"],
+  ] as const;
+
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+      <div className="pointer-events-auto flex max-w-2xl flex-col items-center gap-5 text-center select-none">
+        <div>
+          <p className="text-[11px] font-bold tracking-widest text-[#ff5a36] uppercase">
+            Markup Studio quick guide
+          </p>
+          <h2 className="mt-1.5 text-2xl leading-snug font-bold text-slate-800">
+            プロンプトから画面をつくり、
+            <br />
+            そのまま編集する。
+          </h2>
+          <p className="mt-2 text-xs text-slate-500">
+            ここは無限ボード。生成したフレームを並べて、AIと一緒にUIを練り上げます。
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {steps.map(([step, icon, title, body], index) => (
+            <div key={step} className="flex items-center gap-3">
+              {index > 0 && <span className="hidden text-slate-300 sm:inline">→</span>}
+              <div className="w-44 rounded-xl border border-[#d9d9d0] bg-white p-3 text-left shadow-sm">
+                <span className="text-[10px] font-bold text-slate-400">{step}</span>
+                <div className="my-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#fff0eb] text-[#ff5a36]">
+                  {icon}
+                </div>
+                <p className="text-xs font-bold text-slate-700">{title}</p>
+                <p className="mt-0.5 text-[10.5px] leading-snug text-slate-500">{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
+            onClick={onStartAI}
+          >
+            <Sparkles size={13} /> AIで最初の画面をつくる
+          </button>
+          <button
+            className="flex items-center gap-1.5 rounded-xl border border-[#d9d9d0] bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            onClick={() => setMode("review")}
+          >
+            <MessageSquareDashed size={13} /> スクショに注釈してAIに渡す
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -40,6 +101,7 @@ export function DesignMode() {
   const redo = useDesignStore((state) => state.redo);
   const canUndo = useDesignStore((state) => state.past.length > 0);
   const canRedo = useDesignStore((state) => state.future.length > 0);
+  const boardEmpty = useDesignStore((state) => state.loaded && state.doc.frames.length === 0);
 
   // Auto collapse/expand the panels when the window crosses the narrow threshold,
   // without fighting manual toggles during small resizes.
@@ -88,6 +150,14 @@ export function DesignMode() {
 
       <div className="relative min-w-0 flex-1">
         <CanvasView />
+        {boardEmpty && (
+          <EmptyBoardGuide
+            onStartAI={() => {
+              setRightOpen(true);
+              setRightTab("ai");
+            }}
+          />
+        )}
         <div className="absolute top-3 left-3 flex items-center gap-0.5 rounded-xl border border-[#d9d9d0] bg-white p-1 shadow-md">
           <button
             className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
