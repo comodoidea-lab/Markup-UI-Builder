@@ -273,10 +273,10 @@ export function ReviewMode() {
   };
 
   return (
-    <div className="flex h-full min-h-0 gap-4 overflow-y-auto p-4">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-3 lg:flex-row lg:p-4">
       <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 rounded-xl border border-[#d9d9d0] bg-white p-1 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-0.5 rounded-xl border border-[#d9d9d0] bg-white p-1 shadow-sm">
             {TOOLS.map(([tool, label, Icon]) => (
               <button
                 key={tool}
@@ -298,8 +298,10 @@ export function ReviewMode() {
               onChange={(event) => store.setColor(event.target.value)}
             />
           </div>
-          <span className="text-xs text-slate-400">{store.annotations.length} annotations</span>
-          <div className="ml-auto flex items-center gap-1">
+          <span className="hidden text-xs text-slate-400 sm:inline">
+            {store.annotations.length} annotations
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-1">
             <button
               className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
               onClick={() => void exportPng(false)}
@@ -386,7 +388,7 @@ export function ReviewMode() {
             <Clipboard size={13} /> クリップボードから追加
           </button>
           <form
-            className="flex flex-1 items-center gap-1.5"
+            className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:flex-1 sm:flex-nowrap"
             onSubmit={(event) => {
               event.preventDefault();
               try {
@@ -423,7 +425,7 @@ export function ReviewMode() {
         </p>
       </div>
 
-      <aside className="flex w-[340px] shrink-0 flex-col gap-3">
+      <aside className="flex w-full shrink-0 flex-col gap-3 pb-4 lg:w-[340px] lg:pb-0">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
@@ -436,7 +438,7 @@ export function ReviewMode() {
           </span>
         </div>
 
-        <div className="max-h-[40vh] overflow-y-auto">
+        <div className="max-h-[40vh] overflow-y-auto lg:max-h-none lg:flex-none">
           <InstructionCards listRef={listRef} />
         </div>
 

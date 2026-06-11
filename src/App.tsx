@@ -57,41 +57,45 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col text-[#171813]">
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-[#d9d9d0] bg-[#f4f3ed]/90 px-3 backdrop-blur">
-        <a className="flex items-center gap-2" href="#" aria-label="Markup ホーム">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-[#d9d9d0] bg-[#f4f3ed]/90 px-3 backdrop-blur md:gap-3">
+        <a className="flex shrink-0 items-center gap-2" href="#" aria-label="Markup ホーム">
           <img src="/assets/icons/favicon-32.png" alt="" className="h-6 w-6 rounded" />
-          <span className="text-sm font-extrabold tracking-tight">Markup Studio</span>
+          <span className="hidden text-sm font-extrabold tracking-tight whitespace-nowrap md:inline">
+            Markup Studio
+          </span>
         </a>
 
-        <div className="flex items-center gap-0.5 rounded-xl bg-[#e9e8e0] p-0.5">
+        <div className="flex shrink-0 items-center gap-0.5 rounded-xl bg-[#e9e8e0] p-0.5">
           <button
-            className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold ${
+            className={`flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap sm:px-3 ${
               mode === "design" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
             }`}
             onClick={() => setMode("design")}
           >
-            <PenTool size={13} /> デザイン
+            <PenTool size={13} className="shrink-0" />
+            <span className="hidden sm:inline">デザイン</span>
           </button>
           <button
-            className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold ${
+            className={`flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap sm:px-3 ${
               mode === "review" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
             }`}
             onClick={() => setMode("review")}
           >
-            <MessageSquareWarning size={13} /> レビュー
+            <MessageSquareWarning size={13} className="shrink-0" />
+            <span className="hidden sm:inline">レビュー</span>
           </button>
         </div>
 
         {mode === "design" && (
           <>
             <input
-              className="w-48 rounded-md border border-transparent px-2 py-1 text-xs font-medium text-slate-600 hover:border-slate-200 focus:border-blue-400 focus:outline-none"
+              className="hidden w-40 min-w-0 rounded-md border border-transparent px-2 py-1 text-xs font-medium text-slate-600 hover:border-slate-200 focus:border-blue-400 focus:outline-none lg:block xl:w-48"
               value={docName}
               onChange={(event) => renameDoc(event.target.value)}
               aria-label="ドキュメント名"
             />
             <button
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-50"
+              className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[11px] whitespace-nowrap text-slate-500 hover:bg-slate-50"
               title="パネルなしでキャンバスだけを表示するURLをコピーします。レビューモードのLive URLに貼ると、ボードのみを注釈できます"
               onClick={async () => {
                 const url = `${location.origin}${location.pathname}?embed=canvas`;
@@ -99,29 +103,31 @@ export default function App() {
                 showToast("キャンバスのみ表示するURLをコピーしました。レビューのLive URLに貼り付けてください", 4000);
               }}
             >
-              <Frame size={12} /> キャンバスのみURL
+              <Frame size={12} className="shrink-0" />
+              <span className="hidden xl:inline">キャンバスのみURL</span>
             </button>
           </>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold whitespace-nowrap text-slate-600 hover:bg-slate-50 md:px-2.5"
             title="CursorやCodexと連携するスタータープロンプトを表示"
             onClick={() => setAgentSetupOpen(true)}
           >
-            <Bot size={13} /> エージェント連携
+            <Bot size={13} className="shrink-0" />
+            <span className="hidden lg:inline">エージェント連携</span>
           </button>
           <button
-            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${
+            className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-semibold whitespace-nowrap md:px-2.5 ${
               hasKey
                 ? "border-slate-200 text-slate-600 hover:bg-slate-50"
                 : "border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100"
             }`}
             onClick={() => openSettings(true)}
           >
-            <KeyRound size={13} />
-            {hasKey ? "AI設定" : "APIキーを設定"}
+            <KeyRound size={13} className="shrink-0" />
+            <span className="hidden lg:inline">{hasKey ? "AI設定" : "APIキーを設定"}</span>
           </button>
         </div>
       </header>
