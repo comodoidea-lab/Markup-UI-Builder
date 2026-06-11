@@ -1,0 +1,96 @@
+import { useEffect } from "react";
+import { useAppStore } from "./state/appStore";
+import { useDesignStore } from "./state/designStore";
+import { useSettingsStore } from "./state/settingsStore";
+import { useToastStore } from "./ui/toast";
+import { DesignMode } from "./design/DesignMode";
+import { ReviewMode } from "./review/ReviewMode";
+import { SettingsModal } from "./ui/SettingsModal";
+import { KeyRound, MessageSquareWarning, PenTool } from "lucide-react";
+
+function Toast() {
+  const message = useToastStore((state) => state.message);
+  const visible = useToastStore((state) => state.visible);
+  return (
+    <div
+      role="status"
+      className={`fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white shadow-xl transition-all duration-200 ${
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
+
+export default function App() {
+  const mode = useAppStore((state) => state.mode);
+  const setMode = useAppStore((state) => state.setMode);
+  const docName = useDesignStore((state) => state.doc.name);
+  const renameDoc = useDesignStore((state) => state.renameDoc);
+  const load = useDesignStore((state) => state.load);
+  const openSettings = useSettingsStore((state) => state.openSettings);
+  const hasKey = useSettingsStore((state) => Boolean(state.keys[state.provider]));
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return (
+    <div className="flex h-screen flex-col bg-slate-50 text-slate-900">
+      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3">
+        <a className="flex items-center gap-2" href="#" aria-label="Markup ホーム">
+          <img src="/assets/icons/favicon-32.png" alt="" className="h-6 w-6 rounded" />
+          <span className="text-sm font-extrabold tracking-tight">Markup Studio</span>
+        </a>
+
+        <div className="flex items-center gap-0.5 rounded-xl bg-slate-100 p-0.5">
+          <button
+            className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold ${
+              mode === "design" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+            }`}
+            onClick={() => setMode("design")}
+          >
+            <PenTool size={13} /> デザイン
+          </button>
+          <button
+            className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-semibold ${
+              mode === "review" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+            }`}
+            onClick={() => setMode("review")}
+          >
+            <MessageSquareWarning size={13} /> レビュー
+          </button>
+        </div>
+
+        {mode === "design" && (
+          <input
+            className="w-48 rounded-md border border-transparent px-2 py-1 text-xs font-medium text-slate-600 hover:border-slate-200 focus:border-blue-400 focus:outline-none"
+            value={docName}
+            onChange={(event) => renameDoc(event.target.value)}
+            aria-label="ドキュメント名"
+          />
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${
+              hasKey
+                ? "border-slate-200 text-slate-600 hover:bg-slate-50"
+                : "border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100"
+            }`}
+            onClick={() => openSettings(true)}
+          >
+            <KeyRound size={13} />
+            {hasKey ? "AI設定" : "APIキーを設定"}
+          </button>
+        </div>
+      </header>
+
+      <main className="min-h-0 flex-1">{mode === "design" ? <DesignMode /> : <ReviewMode />}</main>
+
+      <SettingsModal />
+      <Toast />
+    </div>
+  );
+}

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="スクリーンショットやWebアプリへ直接指示を書き込み、AI向けのUI修正プロンプトを生成します。"
+    />
+    <title>Markup — UI feedback for AI</title>
+    <meta name="theme-color" content="#ff5a36" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/icons/favicon-16.png" />
+    <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=8" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Markup ホーム">
+        <span class="brand-mark">
+          <img src="./assets/icons/favicon-32.png" alt="" />
+        </span>
+        <span>Markup</span>
+      </a>
+      <p class="header-subtitle">Visual feedback workspace</p>
+      <div class="topbar-actions">
+        <button
+          class="guide-button"
+          id="openGuide"
+          type="button"
+          aria-label="使い方を表示"
+          aria-haspopup="dialog"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" />
+            <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5v-16Z" />
+          </svg>
+        </button>
+        <button class="button button-primary" id="copyPromptTop">Copy AI prompt</button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="workspace">
+        <div class="canvas-column">
+          <div class="canvas-toolbar">
+            <div class="tool-group" aria-label="注釈ツール">
+              <button class="tool active" data-tool="rect" title="範囲を囲む">
+                <span class="tool-icon rect-icon"></span><span>範囲</span>
+              </button>
+              <button class="tool" data-tool="pin" title="位置を示す">
+                <span class="tool-icon pin-icon">＋</span><span>ピン</span>
+              </button>
+              <button class="tool" data-tool="arrow" title="矢印を描く">
+                <span class="tool-icon arrow-icon">↗</span><span>矢印</span>
+              </button>
+              <button class="tool" data-tool="text" title="文字を配置">
+                <span class="tool-icon text-icon">T</span><span>文字</span>
+              </button>
+              <div class="color-tool-wrap">
+                <button class="tool" data-tool="color" title="指定色を範囲へ適用">
+                  <span class="tool-icon color-icon" id="toolbarColorSwatch"></span><span>色</span>
+                </button>
+                <input
+                  id="toolbarColor"
+                  class="toolbar-color-input"
+                  type="color"
+                  value="#2563eb"
+                  aria-label="指定する色"
+                />
+              </div>
+            </div>
+            <div class="toolbar-meta">
+              <span id="annotationCount">0 annotations</span>
+              <button class="image-copy-button" id="copyImage" title="注釈付き画像をコピー">
+                画像をコピー
+              </button>
+              <button class="image-copy-button" id="downloadImage" title="注釈付きPNGを保存">
+                PNG保存
+              </button>
+              <button class="icon-button" id="undoButton" title="ひとつ戻す" disabled>↶</button>
+              <button class="icon-button" id="clearButton" title="すべて消去" disabled>⌫</button>
+            </div>
+          </div>
+
+          <div class="stage-wrap" id="dropZone">
+            <div class="stage" id="stage">
+              <img id="sourceImage" alt="注釈対象のUIスクリーンショット" />
+              <iframe
+                id="liveFrame"
+                title="注釈対象のWebアプリ"
+                allow="clipboard-read; clipboard-write"
+              ></iframe>
+              <div class="live-mode-bar" id="liveModeBar" hidden>
+                <div class="live-session-row">
+                  <span class="live-session-label" id="liveModeStatus">注釈モード</span>
+                  <div class="live-mode-actions" role="group" aria-label="Webアプリの操作モード">
+                    <button type="button" data-live-mode="interact">Webアプリを操作</button>
+                    <button class="active" type="button" data-live-mode="annotate">注釈を描く</button>
+                  </div>
+                </div>
+                <div class="live-session-row live-route-row">
+                  <label for="livePathInput">Path</label>
+                  <input
+                    id="livePathInput"
+                    type="text"
+                    value="/"
+                    aria-label="現在の画面パス"
+                    spellcheck="false"
+                  />
+                  <button class="live-route-apply" id="applyLivePath" type="button">移動</button>
+                  <button class="live-reload" id="reloadLiveFrame" type="button" title="画面を再読み込み">
+                    ↻
+                  </button>
+                  <label class="live-auto-refresh">
+                    <input id="autoReloadLive" type="checkbox" />
+                    <span>10秒ごと</span>
+                  </label>
+                </div>
+              </div>
+              <div class="demo-page" id="demoPage">
+                <div class="demo-guide-heading">
+                  <p>Markup quick guide</p>
+                  <h2>スクリーンショットに、<br />見たまま指示する。</h2>
+                  <span>この画面へ直接、範囲や矢印を描いて試せます。</span>
+                </div>
+                <div class="demo-guide-steps">
+                  <article>
+                    <span class="demo-step-number">01</span>
+                    <div class="demo-step-icon">＋</div>
+                    <h3>画面を開く</h3>
+                    <p>画像を読み込むか、<br />WebアプリのURLを指定</p>
+                  </article>
+                  <span class="demo-step-arrow">→</span>
+                  <article>
+                    <span class="demo-step-number">02</span>
+                    <div class="demo-step-icon demo-step-icon-accent">↗</div>
+                    <h3>修正箇所を示す</h3>
+                    <p>範囲・ピン・矢印・文字・色で<br />意図を視覚化</p>
+                  </article>
+                  <span class="demo-step-arrow">→</span>
+                  <article>
+                    <span class="demo-step-number">03</span>
+                    <div class="demo-step-icon">AI</div>
+                    <h3>エージェントへ渡す</h3>
+                    <p>注釈付き画像とプロンプトを<br />コピーして実装へ</p>
+                  </article>
+                </div>
+                <p class="demo-guide-tip">まずは上のツールを選び、このガイドを囲んでみてください。</p>
+              </div>
+              <svg id="annotationLayer" aria-label="注釈レイヤー"></svg>
+              <div class="empty-state" id="emptyState">
+                <div class="upload-icon">↑</div>
+                <strong>スクリーンショットをドロップ</strong>
+                <span>PNG / JPG / WebP</span>
+              </div>
+            </div>
+            <div class="image-source-actions">
+              <label class="replace-image">
+                <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" />
+                <span>＋ ファイルを選ぶ</span>
+              </label>
+              <button class="paste-image" id="pasteImage" type="button">
+                <span class="paste-image-icon">⌘V</span>
+                クリップボードから追加
+              </button>
+            </div>
+            <form class="live-url-form" id="liveUrlForm">
+              <span class="live-url-label">Live URL</span>
+              <input
+                id="liveUrlInput"
+                type="url"
+                inputmode="url"
+                placeholder="http://localhost:3000 または https://example.com"
+                aria-label="WebアプリのURL"
+                required
+              />
+              <button type="submit">Webアプリを開く</button>
+            </form>
+            <p class="live-url-note">
+              iframe表示を禁止しているサイトは開けません。ライブ画面では注釈付き画像のコピーは利用できません。
+            </p>
+          </div>
+        </div>
+
+        <aside class="sidebar">
+          <div class="sidebar-heading">
+            <div>
+              <p class="eyebrow">Instructions</p>
+              <h2>修正指示</h2>
+            </div>
+            <span class="count-badge" id="sidebarCount">0</span>
+          </div>
+
+          <div class="instruction-list" id="instructionList">
+            <div class="sidebar-empty">
+              <span>01</span>
+              <p>左の画面で修正したい場所をドラッグして囲んでください。</p>
+            </div>
+          </div>
+
+          <div class="prompt-panel">
+            <div class="prompt-heading">
+              <div>
+                <p class="eyebrow">Output</p>
+                <h3>AI prompt</h3>
+              </div>
+              <div class="segmented" role="group" aria-label="出力形式">
+                <button class="active" data-format="markdown">MD</button>
+                <button data-format="json">JSON</button>
+              </div>
+            </div>
+            <pre id="promptPreview">注釈を追加すると、ここにAI向けの指示が生成されます。</pre>
+            <div class="prompt-actions">
+              <button class="button prompt-copy-button" id="copyPrompt">Copy prompt</button>
+              <button class="button button-dark" id="insertAgent">Insert into agent</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="agent-setup" aria-labelledby="agentSetupTitle">
+        <div class="agent-setup-intro">
+          <p class="eyebrow">Agent setup</p>
+          <h2 id="agentSetupTitle">いつものAIエージェントから、<br />すぐにレビューを始める。</h2>
+          <p>
+            プロンプトをCodexやCursorへ一度貼り付けると、スクリーンショットを
+            Markupで開き、注釈をもとに修正する流れを共有できます。
+          </p>
+        </div>
+
+        <div class="starter-card">
+          <div class="starter-card-heading">
+            <div>
+              <p class="starter-kicker">Quick start</p>
+              <h3>スタータープロンプト</h3>
+            </div>
+            <button class="starter-copy" id="copyStarterPrompt" type="button">コピー</button>
+          </div>
+          <pre id="starterPrompt" aria-label="スタータープロンプト"></pre>
+          <div class="starter-links">
+            <a href="./start.md" target="_blank" rel="noreferrer">start.md</a>
+            <a href="./skill/SKILL.md" target="_blank" rel="noreferrer">Markup Skill</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status">コピーしました</div>
+
+    <div class="guide-modal" id="guideModal" hidden>
+      <div class="guide-backdrop" data-close-guide></div>
+      <section
+        class="guide-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guideTitle"
+        aria-describedby="guideDescription"
+      >
+        <button class="guide-close" type="button" data-close-guide aria-label="閉じる">×</button>
+        <p class="eyebrow">How to use Markup</p>
+        <h2 id="guideTitle">スクショに描いて、<br />そのまま実装へ。</h2>
+        <p id="guideDescription">
+          通常のブラウザ利用に加えて、CodexやCursorなどのAIエージェントから
+          スクリーンショットを開くこともできます。
+        </p>
+        <ol class="guide-steps">
+          <li><span>01</span>画像を読み込むか、WebアプリのURLを開く</li>
+          <li><span>02</span>範囲・矢印・文字・色で修正内容を示す</li>
+          <li><span>03</span>画像をコピー、またはPNG保存してAIプロンプトと一緒に渡す</li>
+          <li><span>04</span>エージェントへ戻り「Markupの指示どおり修正して」と伝える</li>
+        </ol>
+        <a class="guide-skill-link" href="./skill/SKILL.md" target="_blank" rel="noreferrer">
+          Markup Skillを見る <span>↗</span>
+        </a>
+      </section>
+    </div>
+
+    <template id="instructionTemplate">
+      <article class="instruction-card">
+        <div class="instruction-top">
+          <span class="instruction-number"></span>
+          <select class="instruction-type" aria-label="修正の種類">
+            <option value="layout">レイアウト</option>
+            <option value="style">見た目</option>
+            <option value="copy">テキスト</option>
+            <option value="remove">削除</option>
+            <option value="behavior">動作</option>
+          </select>
+          <button class="delete-instruction" title="この指示を削除">×</button>
+        </div>
+        <textarea
+          class="instruction-text"
+          rows="3"
+          placeholder="例：見出しを左揃えにして、上下の余白を広げる"
+        ></textarea>
+        <div class="instruction-color-row" hidden>
+          <label>変更後の色</label>
+          <input class="instruction-color" type="color" />
+          <code class="instruction-color-value"></code>
+        </div>
+        <div class="instruction-coords"></div>
+      </article>
+    </template>
+
+    <script src="./app.js?v=8"></script>
+  </body>
+</html>

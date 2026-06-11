@@ -1,24 +1,33 @@
-# Markup
+# Markup Studio
 
-UIスクリーンショットへ視覚的な修正指示を加え、AI向けのMarkdownまたはJSONプロンプトを生成するツールです。
+AIでUIをデザイン・生成・編集し、コードまで出力するビジュアルワークスペースです。
+スクリーンショットやWebアプリへの注釈レビュー(従来のMarkup)も統合されています。
 
-## Features
+## モード
 
-- スクリーンショットのドラッグ＆ドロップ
-- URLを指定してWebアプリをiframe内で操作しながら注釈
-- 範囲、ピン、矢印、文字による注釈
-- ボタンやカードの変更色を視覚的に指定
-- 注釈付きPNGの生成
-- AI向けMarkdown / JSONプロンプトの生成
-- ブラウザ内への下書き保存
-- AIエージェントからのスクリーンショット自動投入
+### デザインモード
 
-ライブURL機能は、対象サイトがiframe表示を許可している場合に利用できます。
-クロスオリジンiframeはブラウザの制約で画像へ合成できないため、注釈付きPNGが必要な場合はスクリーンショットを読み込んでください。
+- **無限キャンバス** — パン/ズーム、複数フレーム(Mobile / Tablet / Desktop)を並べて編集
+- **ノードベース編集** — Box / Text / Button / Input / Image をflexレイアウト(Auto Layout)で構成
+- **レイヤーパネルとインスペクタ** — 余白・サイズ・色・角丸・影・タイポグラフィをGUIで編集
+- **多段 undo/redo** (⌘Z / ⇧⌘Z)
+- **AI画面生成 (BYOK)** — プロンプト(+参考スクリーンショット)から編集可能なフレームを生成
+- **インラインAI編集** — 要素を選択して「もっと目立たせて」のように指示すると、その部分だけAIが修正
+- **コード出力** — React (TSX) と HTML+CSS をワンクリックでコピー/ダウンロード、iframeライブプレビュー付き
 
-ライブレビューでは、開発サーバーと画面パスをレビュー単位で保存します。手動リロード、
-任意の10秒自動リロード、同じパスでの注釈保持に対応しています。別の画面パスへ移動した場合は、
-座標の誤適用を防ぐため注釈をクリアします。
+### レビューモード
+
+- スクリーンショットのドラッグ＆ドロップ / クリップボード貼り付け
+- ライブURL(開発サーバー)をiframeで操作しながら注釈
+- 範囲・ピン・矢印・文字・色の5種注釈と修正指示カード
+- AI向け Markdown / JSON プロンプト生成、注釈付きPNGのコピー/保存
+- **AIで編集可能なデザインに変換** — スクリーンショット+注釈からデザインモードのフレームを生成
+
+## AI設定 (BYOK)
+
+右上の「APIキーを設定」から、Anthropic (Claude) / OpenAI (GPT) / Google (Gemini) の
+いずれかのAPIキーを登録してください。キーはブラウザのlocalStorageにのみ保存され、
+各プロバイダのAPIへ直接送信されます(サーバーには送信されません)。
 
 ## Agent integration
 
@@ -30,27 +39,27 @@ node cli/markup.mjs open \
   --url https://your-markup.example/
 ```
 
-ブラウザ自動化からは`window.Markup.importBoard(payload)`または`postMessage`を利用できます。
-詳細は[`docs/agent-bridge-api.md`](./docs/agent-bridge-api.md)を参照してください。
+ブラウザ自動化からは `window.Markup.importBoard(payload)` または `postMessage` を利用できます。
+詳細は [`public/docs/agent-bridge-api.md`](./public/docs/agent-bridge-api.md) を参照してください。
+従来の Agent Bridge API / Skill とは互換です。
+
+## 開発
+
+```bash
+npm install
+npm run dev      # http://localhost:4173
+npm run build    # 型チェック + 本番ビルド (dist/)
+```
+
+技術スタック: Vite + React + TypeScript + Zustand + Tailwind CSS。
+保存はブラウザ内(IndexedDB / localStorage)のみで、サーバー不要です。
 
 ## Vercel
 
-フレームワークやビルド処理を必要としない静的サイトです。
+`vercel.json` で設定済みです。リポジトリをインポートするだけでデプロイできます
+(Framework: Vite / Build: `npm run build` / Output: `dist`)。
 
-1. このリポジトリをVercelへインポート
-2. Framework Presetは `Other` を選択
-3. Build CommandとOutput Directoryは空欄のままデプロイ
+## レガシー版
 
-Vercel版で画像のクリップボード書き込みがブラウザに拒否された場合は、注釈付きPNGを自動的にダウンロードします。
-
-## Local development
-
-macOSでは以下を実行します。
-
-```bash
-./start.command
-```
-
-その後、[http://127.0.0.1:4173](http://127.0.0.1:4173)を開きます。
-
-ローカルサーバー版では、注釈付きPNGをmacOSのシステムクリップボードへ直接コピーできます。
+リライト前のバニラJS版は [`legacy/`](./legacy) に残しています。
+macOSのシステムクリップボード中継(`server.py`)はローカル利用時に引き続き動作します。

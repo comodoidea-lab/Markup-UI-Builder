@@ -1,7 +1,5 @@
+node_modules
+dist
 .DS_Store
-__pycache__/
-*.pyc
-.vercel/
-work/
-outputs/
-.markup-url
+*.local
+.vercel
