@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useDesignStore } from "../state/designStore";
 import { useSettingsStore } from "../state/settingsStore";
 import { generateScreen } from "../ai/actions";
+import { useWorkersAI } from "../ai/config";
 import { DEVICE_PRESETS } from "../state/nodeUtils";
 import { ImagePlus, Loader2, Send, Settings2, Sparkles, X } from "lucide-react";
 
@@ -13,6 +14,8 @@ export function AIPanel() {
   const provider = useSettingsStore((state) => state.provider);
   const model = useSettingsStore((state) => state.models[state.provider]);
   const openSettings = useSettingsStore((state) => state.openSettings);
+  const workersAI = useWorkersAI();
+  const modelLabel = workersAI ? "workers-ai / gemma-4-26b" : `${provider} / ${model}`;
 
   const [prompt, setPrompt] = useState("");
   const [device, setDevice] = useState<(typeof DEVICE_PRESETS)[number]["id"]>("mobile");
@@ -60,7 +63,7 @@ export function AIPanel() {
         >
           <Settings2 size={11} className="shrink-0" />
           <span className="truncate whitespace-nowrap">
-            {provider} / {model}
+            {modelLabel}
           </span>
         </button>
       </div>

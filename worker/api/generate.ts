@@ -1,5 +1,5 @@
-/** Workers AI model — multimodal Gemma (screenshot → JSON). */
-const MODEL = "@cf/google/gemma-3-12b-it";
+/** Workers AI model — multimodal Gemma 4 (screenshot → JSON). */
+const MODEL = "@cf/google/gemma-4-26b-a4b-it";
 
 /** ~3 MB base64 payload cap to stay within Workers request limits. */
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
